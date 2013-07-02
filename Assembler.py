@@ -1,6 +1,10 @@
 #! /usr/bin//env python 
 # By Skywalker 2013/6/30
 
+#Results tested in MARS 4.3
+
+import string
+
 Register_Keywords = {'$zero':'00000','$at':'00001',
                      '$v0':'00010','$v1':'00011',
                      '$a0':'00100','$a1':'00101',
@@ -48,20 +52,6 @@ Type_Keywords = {'nop':'R',
                  'j':'J','jal':'J',
                  'jr':'R','jalr':'R' }
 
-Shamt_Keywords = {'nop':'00000',
-                  'lw':'','sw':'','lui':'',
-                  'add':'00000','addu':'00000',
-                  'sub':'00000','subu':'00000',
-                  'addi':'','addiu':'',
-                  'and':'00000','or':'00000',
-                  'xor':'00000','nor':'00000',
-                  'andi':'',
-                  'sll':'sa','srl':'sa','sra':'sa',
-                  'slt':'00000','slti':'','sltiu':'',
-                  'beq':'','bne':'',
-                  'blez':'','bgtz':'','bltz':'',
-                  'j':'','jal':'',
-                  'jr':'00000','jalr':'00000' }
 
 Funct_Keywords = {'nop':'000000',
                   'lw':'','sw':'','lui':'',
@@ -78,8 +68,93 @@ Funct_Keywords = {'nop':'000000',
                   'j':'','jal':'',
                   'jr':'001000','jalr':'001001' }
 
+Mode_Keywords = {'nop':'000',
+                 'lw':'I','sw':'I','lui':'I',
+                 'add':'231','addu':'231',
+                 'sub':'231','subu':'231',
+                 'addi':'I','addiu':'I',
+                 'and':'231','or':'231',
+                 'xor':'231','nor':'231',
+                 'andi':'I',
+                 'sll':'021','srl':'021','sra':'021',
+                 'slt':'231','slti':'I','sltiu':'I',
+                 'beq':'I','bne':'I',
+                 'blez':'I','bgtz':'I','bltz':'I',
+                 'j':'J','jal':'J',
+                 'jr':'100','jalr':'201' }  # Not support "jalr rs"(rd = 31 implied)
+
+
+RType_IsShift_Keywords = {'nop':False,
+                          'add':False,'addu':False,
+                          'sub':False,'subu':False,
+                          'and':False,'or':False,
+                          'xor':False,'nor':False,
+                          'sll':True,'srl':True,'sra':True,
+                          'slt':False,
+                          'jr':False,'jalr':False }
+
+#Test_data
+
+#R-Type
+Test_nop = ['nop']  #AC
+Test_add = ['add','$t6','$a1','$s2']  #AC
+Test_addu = ['addu','$s0','$zero','$v0']  #AC
+Test_sub = ['sub','$t5','$t1','$t3']  #AC
+Test_subu = ['subu','$t5','$t1','$t3']  #AC
+Test_and = ['and','$t5','$t1','$t3']  #AC
+Test_or = ['or','$t5','$t1','$t3']  #AC
+Test_xor = ['xor','$t5','$t1','$t3']  #AC
+Test_nor = ['nor','$t5','$t1','$t3']  #AC
+Test_sll = ['sll','$a1','$a1','2']  #AC
+Test_srl = ['srl','$a1','$a1','2']  #AC
+Test_sra = ['sra','$a1','$a1','23']  #AC
+Test_slt = ['slt','$s1','$s2','$s3']  #AC
+Test_jr = ['jr','$ra']  #AC
+Test_jalr = ['jalr','$s1','$s2']  #AC
+
 def NumberToBinaryCode(ImNumber,length):
-    ImBinary = bin(ImNumber).replace('b','')
-    ImBinary = (length-len(ImBinary)) * '0' + ImBinary
-    return ImBinary
+    if ImNumber >=0 :
+        ImBinary = bin(ImNumber).replace('b','')
+	if length >= len(ImBinary):
+            ImBinary = (length-len(ImBinary)) * '0' + ImBinary
+	else:
+	    ImBinary = ImBinary[-length:]
+        return ImBinary
+    else:
+        pass
+        return False
+
+
+
+
+
+
+def RTypeCode(Instruction):
+    Code = Opcode_Keywords[Instruction[0]]
+
+    for i in xrange(0,3):
+	reg = string.atoi(Mode_Keywords[Instruction[0]][i])
+	if reg > 0:
+	    Code += Register_Keywords[Instruction[reg]]
+	else:
+	    Code += '00000'
+
+    if RType_IsShift_Keywords[Instruction[0]]:
+	Code += NumberToBinaryCode(string.atoi(Instruction[-1]),5)
+    else:
+    	Code += '00000'
+
+    Code += Funct_Keywords[Instruction[0]]
+
+    return Code
+
+
+def ITypeCode(Instruction):
+    Code = Opcode_Keywords[Instruction[0]]
+    return Code
+def JTypeCode(Instruction):
+    Code = Opcode_Keywords[Instruction[0]]
+    return Code
+
+print RTypeCode(Test_jalr)
 
