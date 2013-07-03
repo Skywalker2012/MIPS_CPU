@@ -201,5 +201,5 @@ for Instruction in Instructions_List:
 	    templist[2], templist[3] = templist[3], templist[2]
 	fp_w.write(ITypeCode(templist)+'\n')
     else:
-	fp_w.write(JTypeCode(templist))
+	fp_w.write(JTypeCode(templist)+'\n')
 
