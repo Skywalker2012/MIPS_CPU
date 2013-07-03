@@ -112,6 +112,10 @@ Test_slt = ['slt','$s1','$s2','$s3']  #AC
 Test_jr = ['jr','$ra']  #AC
 Test_jalr = ['jalr','$s1','$s2']  #AC
 
+#J-Type
+Test_j = ['j','0x004000b4']  #AC
+Test_jal = ['jal','0x00400044']  #AC
+
 def NumberToBinaryCode(ImNumber,length):
     if ImNumber >=0 :
         ImBinary = bin(ImNumber).replace('b','')
@@ -152,9 +156,12 @@ def RTypeCode(Instruction):
 def ITypeCode(Instruction):
     Code = Opcode_Keywords[Instruction[0]]
     return Code
+
+
 def JTypeCode(Instruction):
     Code = Opcode_Keywords[Instruction[0]]
+    Code += NumberToBinaryCode(int(Instruction[1],0)/4,26)
     return Code
 
-print RTypeCode(Test_jalr)
+print JTypeCode(Test_jal)
 
