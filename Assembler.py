@@ -3,8 +3,6 @@
 
 #Results tested in MARS 4.3
 
-import string
-
 Register_Keywords = {'$zero':'00000','$at':'00001',
                      '$v0':'00010','$v1':'00011',
                      '$a0':'00100','$a1':'00101',
@@ -69,17 +67,17 @@ Funct_Keywords = {'nop':'000000',
                   'jr':'001000','jalr':'001001' }
 
 Mode_Keywords = {'nop':'000',
-                 'lw':'I','sw':'I','lui':'I',
+                 'lw':'21','sw':'21','lui':'01',
                  'add':'231','addu':'231',
                  'sub':'231','subu':'231',
-                 'addi':'I','addiu':'I',
+                 'addi':'21','addiu':'21',
                  'and':'231','or':'231',
                  'xor':'231','nor':'231',
-                 'andi':'I',
+                 'andi':'21',
                  'sll':'021','srl':'021','sra':'021',
-                 'slt':'231','slti':'I','sltiu':'I',
-                 'beq':'I','bne':'I',
-                 'blez':'I','bgtz':'I','bltz':'I',
+                 'slt':'231','slti':'21','sltiu':'21',
+                 'beq':'12','bne':'12',
+                 'blez':'10','bgtz':'10','bltz':'10',
                  'j':'J','jal':'J',
                  'jr':'100','jalr':'201' }  # Not support "jalr rs"(rd = 31 implied)
 
@@ -112,9 +110,26 @@ Test_slt = ['slt','$s1','$s2','$s3']  #AC
 Test_jr = ['jr','$ra']  #AC
 Test_jalr = ['jalr','$s1','$s2']  #AC
 
+#I-Type
+Test_lw = ['lw','$ra','$sp','8']  #AC
+Test_sw = ['sw','$a3','$sp','4']  #AC
+Test_lui = ['lui','$at','0x1001']  #AC
+Test_addi = ['addi','$sp','$sp','0xfff4']  #AC
+Test_addiu = ['addiu','$v0','$zero','0x0001']  #AC
+Test_andi = ['andi','$s1','$s2','0xf00f']  #AC
+Test_slti = ['slti','$s1','$s2','0xff']  #AC
+Test_sltiu = ['sltiu','$s1','$s2','0xfff']  #AC
+Test_beq = ['beq','$s1','$s2','0xfffc']  #AC
+Test_bne = ['bne','$s1','$s2','0xfffc']  #AC
+Test_blez = ['blez','$s1','0xfffc']  #AC
+Test_bgtz = ['bgtz','$s1','0xfffc']  #AC
+Test_bltz = ['bltz','$s1','0xfffc']  #AC
+
 #J-Type
 Test_j = ['j','0x004000b4']  #AC
 Test_jal = ['jal','0x00400044']  #AC
+
+
 
 def NumberToBinaryCode(ImNumber,length):
     if ImNumber >=0 :
@@ -125,26 +140,26 @@ def NumberToBinaryCode(ImNumber,length):
 	    ImBinary = ImBinary[-length:]
         return ImBinary
     else:
-        pass
-        return False
-
-
-
-
-
+        ImNumber = 2 ** length + ImNumber
+	ImBinary = bin(ImNumber)[2:]
+	if length >= len(ImBinary):
+            ImBinary = (length-len(ImBinary)) * '1' + ImBinary
+	else:
+	    ImBinary = ImBinary[-length:]
+        return ImBinary
 
 def RTypeCode(Instruction):
     Code = Opcode_Keywords[Instruction[0]]
 
     for i in xrange(0,3):
-	reg = string.atoi(Mode_Keywords[Instruction[0]][i])
+	reg = int(Mode_Keywords[Instruction[0]][i],10)
 	if reg > 0:
 	    Code += Register_Keywords[Instruction[reg]]
 	else:
 	    Code += '00000'
 
     if RType_IsShift_Keywords[Instruction[0]]:
-	Code += NumberToBinaryCode(string.atoi(Instruction[-1]),5)
+	Code += NumberToBinaryCode(int(Instruction[-1],0),5)
     else:
     	Code += '00000'
 
@@ -155,6 +170,13 @@ def RTypeCode(Instruction):
 
 def ITypeCode(Instruction):
     Code = Opcode_Keywords[Instruction[0]]
+    for i in xrange(0,2):
+	reg = int(Mode_Keywords[Instruction[0]][i],10)
+	if reg > 0:
+	    Code += Register_Keywords[Instruction[reg]]
+	else:
+	    Code += '00000'
+    Code += NumberToBinaryCode(int(Instruction[-1],0),16)
     return Code
 
 
@@ -163,5 +185,21 @@ def JTypeCode(Instruction):
     Code += NumberToBinaryCode(int(Instruction[1],0)/4,26)
     return Code
 
-print JTypeCode(Test_jal)
+fp_r = open('input.txt','r')
+fp_w = open('output.txt','w')
+
+Instructions_List = fp_r.readlines()
+for Instruction in Instructions_List:
+    tempstr = Instruction.replace(',',' ')
+    tempstr = tempstr.replace('(',' ')
+    tempstr = tempstr.replace(')',' ')
+    templist = tempstr.split()
+    if Type_Keywords[templist[0]] == 'R':
+	fp_w.write(RTypeCode(templist)+'\n')
+    elif Type_Keywords[templist[0]] == 'I':
+	if (templist[0] == 'lw') or (templist[0] == 'sw'):
+	    templist[2], templist[3] = templist[3], templist[2]
+	fp_w.write(ITypeCode(templist)+'\n')
+    else:
+	fp_w.write(JTypeCode(templist))
 
