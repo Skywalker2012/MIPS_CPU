@@ -2,3 +2,4 @@ add $t6, $a1, $s2
 nop
 lw $v0,12($sp)
 j,0x004000b4
+sll $a1, $a1, 2
