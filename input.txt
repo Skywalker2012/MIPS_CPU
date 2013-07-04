@@ -1,4 +1,30 @@
-add $t6, $a1, $s2
 nop
-lw $v0,12($sp)
-j,0x004000b4
+add $t6, $a1, $s2
+addu $s0, $zero, $v0
+sub $t5, $t1, $t3
+subu $t5, $t1, $t3
+and $t5, $t1, $t3
+or $t5, $t1, $t3
+xor $t5, $t1, $t3
+nor $t5, $t1, $t3
+sll $a1, $a1, 2
+srl $a1, $a1, 2
+sra $a1, $a1, 23
+slt $s1, $s2, $s3
+jr $ra
+jalr $s1, $s2
+lw $ra, 8($sp)
+sw $a3, 4($sp)
+lui $at, 0x1001
+addi $sp, $sp, 0xfff4
+addiu $v0, $zero, 0x0001
+andi $s1, $s2, 0xf00f
+slti $s1, $s2, 0xff
+sltiu $s1, $s2, 0xfff
+beq $s1, $s2, 0xfffc
+bne $s1, $s2, 0xfffc
+blez $s1, 0xfffc
+bgtz $s1, 0xfffc
+bltz $s1, 0xfffc
+j 0x00400004
+jal 0x00400008
