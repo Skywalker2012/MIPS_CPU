@@ -3,6 +3,8 @@
 
 #Results tested in MARS 4.3
 
+import sys
+
 Register_Keywords = {'$zero':'00000','$at':'00001',
                      '$v0':'00010','$v1':'00011',
                      '$a0':'00100','$a1':'00101',
@@ -185,21 +187,21 @@ def JTypeCode(Instruction):
     Code += NumberToBinaryCode(int(Instruction[1],0)/4,26)
     return Code
 
-fp_r = open('input.txt','r')
-fp_w = open('output.txt','w')
+sys.stdin = open('input.txt','r')
+sys.stdout = open('output.txt','w')
 
-Instructions_List = fp_r.readlines()
+Instructions_List = sys.stdin.readlines()
 for Instruction in Instructions_List:
     tempstr = Instruction.replace(',',' ')
     tempstr = tempstr.replace('(',' ')
     tempstr = tempstr.replace(')',' ')
     templist = tempstr.split()
     if Type_Keywords[templist[0]] == 'R':
-	fp_w.write(RTypeCode(templist)+'\n')
+	print(RTypeCode(templist))
     elif Type_Keywords[templist[0]] == 'I':
 	if (templist[0] == 'lw') or (templist[0] == 'sw'):
 	    templist[2], templist[3] = templist[3], templist[2]
-	fp_w.write(ITypeCode(templist)+'\n')
+	print(ITypeCode(templist))
     else:
-	fp_w.write(JTypeCode(templist)+'\n')
+	print(JTypeCode(templist))
 
